@@ -45,8 +45,8 @@ class Baxter(object):
         drawdown_unrlzd = equity_curve_pct_unrlzd / equity_curve_pct_unrlzd.expanding().max() - 1
         drawdown_pnl = equity_curve_pct_pnl / equity_curve_pct_pnl.expanding().max() - 1
 
-        fig, (ax0, ax1, ax2, ax3) = plt.subplots(
-            4, 1, figsize=(20, 15), sharex=True)
+        fig, (ax0, ax1, ax2) = plt.subplots(
+            3, 1, figsize=(20, 15), sharex=True)
         fig.suptitle("Equity Curves and Drawdown")
         ax0.plot(equity_curve_dollar_unrlzd)
         ax0.plot(buynhold_dollar)
@@ -60,11 +60,9 @@ class Baxter(object):
         ax1.legend(['Unrealized', 'Benchmark', 'Realized'])
         ax1.set_title("Percentage P&L")
 
-        ax2.plot(drawdown_unrlzd, 'r')
-        ax2.set_title("Unrealized Drawdown")
-        
-        ax3.plot(drawdown_pnl, 'r')
-        ax3.set_title("Realized Drawdown")
+        ax2.plot(drawdown_unrlzd, 'black')
+        ax2.plot(drawdown_pnl, 'rv')
+        ax2.set_title("Drawdown")
 
     def run(self) -> None:
         entry = None
