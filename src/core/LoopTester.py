@@ -2,9 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import Strategy
+import Backtester
 
 
-class Baxter(object):
+class LoopTester(Backtester):
     def __init__(
         self,
         strategy: Strategy,
