@@ -1,8 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-import Strategy
-import Backtester
+#import seaborn as sns
+from .Strategy import Strategy
+from .Backtester import Backtester
 
 
 class LoopTester(Backtester):
@@ -23,7 +23,7 @@ class LoopTester(Backtester):
         }
 
     def _plot_pnls(self):
-        sns.set_theme()
+        #sns.set_theme()
 
         equity_curve_dollar_pnl = pd.Series(self._results['pnls'], index=self._results['trade_dates']).to_frame(
             'pnls').cumsum()
