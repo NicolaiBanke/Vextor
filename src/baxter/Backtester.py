@@ -23,7 +23,7 @@ class Backtester(ABC):
     @abstractmethod
     def _calculate_equity_curve(self): ...
 
-    def _plot_results(self):
+    def _plot_equity_curves(self):
 
         fig, (ax0, ax1, ax2) = plt.subplots(
             3, 1, figsize=(20, 15), sharex=True)
@@ -48,4 +48,4 @@ class Backtester(ABC):
 
     def run(self) -> None:
         self._calculate_equity_curve()
-        self._plot_results()
+        self._plot_equity_curves()

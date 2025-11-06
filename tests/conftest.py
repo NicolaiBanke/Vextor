@@ -40,8 +40,10 @@ def sub_strategy(indicators):
 @pytest.fixture(scope="module")
 def sub_tester(sub_strategy, portfolio, benchmark):
     class SubTester(Backtester):
-        def __init__(self, sub_strategy, portfolio, benchmark):
-            super().__init__(sub_strategy, portfolio, benchmark)
+        def __init__(self, strategy, portfolio, benchmark):
+            super().__init__(strategy, portfolio, benchmark)
 
         def _calculate_equity_curve(self):
             pass
+    
+    return SubTester(strategy=sub_strategy, portfolio=portfolio, benchmark=benchmark)
