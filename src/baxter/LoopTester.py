@@ -49,7 +49,7 @@ class LoopTester(Backtester):
                 pass
 
         self._equity_curve["Realized Dollar P&L"] = pd.Series(
-            self._loop_results["pnls"], index=self._results["trade_dates"]
+            self._loop_results["pnls"], index=self._loop_results["trade_dates"]
         ).cumsum()
 
         self._equity_curve["Unrealized Dollar P&L"] = pd.Series(
