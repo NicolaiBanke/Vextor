@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from ..Strategy.Strategy import Strategy
+from .Strategy import Strategy
 import pandas as pd
 import matplotlib.pyplot as plt
 
