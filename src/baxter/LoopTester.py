@@ -22,10 +22,12 @@ class LoopTester(Backtester):
 
         for i in range(1, len(self.benchmark) - 1):
             unr = (
-                self.portfolio.iloc[i].item() - self.portfolio.iloc[i - 1].item()
+                self.portfolio.iloc[i].item(
+                ) - self.portfolio.iloc[i - 1].item()
             ) * inpos
             unr_pct = (
-                (self.portfolio.iloc[i].item() - self.portfolio.iloc[i - 1].item())
+                (self.portfolio.iloc[i].item() -
+                 self.portfolio.iloc[i - 1].item())
                 / self.portfolio.iloc[i - 1].item()
             ) * inpos
             self._loop_results["unrlzd"].append(unr)
@@ -35,7 +37,8 @@ class LoopTester(Backtester):
             # go long
             if self.strategy.signal(i, inpos) == "long":
                 entry = self.portfolio.iloc[i].item()
-                self._loop_results["trade_dates"].append(self.portfolio.index[i + 1])
+                self._loop_results["trade_dates"].append(
+                    self.portfolio.index[i + 1])
                 inpos = 1
 
             # close position
@@ -56,7 +59,8 @@ class LoopTester(Backtester):
             self._loop_results["unrlzd"], index=self._loop_results["dates"]
         ).cumsum()
 
-        self._equity_curve["Realized Benchmark P&L"] = self.benchmark.diff().cumsum()
+        self._equity_curve["Realized Benchmark P&L"] = self.benchmark.diff(
+        ).cumsum()
 
         self._equity_curve["Realized Pct. P&L"] = (
             1
