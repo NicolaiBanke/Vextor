@@ -45,5 +45,5 @@ def sub_tester(sub_strategy, portfolio, benchmark):
 
         def _calculate_equity_curve(self):
             pass
-    
+
     return SubTester(strategy=sub_strategy, portfolio=portfolio, benchmark=benchmark)

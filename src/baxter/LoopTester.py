@@ -14,7 +14,6 @@ class LoopTester(Backtester):
             "trade_dates": [],
             "dates": [],
         }
-        print(self._equity_curve)
 
     def _calculate_equity_curve(self) -> None:
         entry = None
