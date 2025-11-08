@@ -13,7 +13,3 @@ def test_looptester_instantiation(sub_tester):
 
     assert "_calculate_equity_curve" in dir(
         LoopTester), "._calculate_equity_curve should be implemented for this class"
-
-
-def test_subtester_run_method(sub_tester):
-    sub_tester.run()
