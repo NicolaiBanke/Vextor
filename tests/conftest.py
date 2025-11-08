@@ -53,4 +53,3 @@ def sub_tester(sub_strategy, portfolio, benchmark):
             pass
 
     return SubTester(strategy=sub_strategy, portfolio=portfolio, benchmark=benchmark)
-
