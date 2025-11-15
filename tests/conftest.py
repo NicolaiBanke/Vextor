@@ -4,7 +4,6 @@ from baxter.Strategy import Strategy
 from baxter.Backtester import Backtester
 
 with pd.HDFStore("data.h5") as store:
-    print(store)
     _asset = store.get("asset")
     _indicators = store.get("indicators")
 

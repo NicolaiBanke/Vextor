@@ -21,25 +21,18 @@ def test_backtester_plot_equity_curves():
 def test_backtester_metrics_attribute():
     assert 'metrics' in Backtester.__static_attributes__, "metrics should be an attribute of the Backtester class"
 
-# study https://realpython.com/pytest-python-testing/#marks-categorizing-tests to make tests neater
 
-
-def test_backtester_metrics_methods():
-    assert '_sharpe' in dir(
-        Backtester), "method _sharpe should be implemented in the Backtester class to calculate the Sharpe ratio of a run strategy"
-    assert '_sortino' in dir(
-        Backtester), "method _sortino should be implemented in the Backtester class to calculate the Sortino ratio of a run strategy"
-    assert '_cagr' in dir(
-        Backtester), "method _cagr should be implemented in the Backtester class to calculate the compounded annual growth rate of a run strategy"
-    assert '_beta' in dir(
-        Backtester), "method _beta should be implemented in the Backtester class to calculate the beta of a run strategy"
-    assert '_max_dd' in dir(
-        Backtester), "method _max_dd should be implemented in the Backtester class to calculate the max drawdown of a run strategy"
-    assert '_avg_dd' in dir(
-        Backtester), "method _avg_dd should be implemented in the Backtester class to calculate the average drawdown of a run strategy"
-    assert '_ann_ret' in dir(
-        Backtester), "method _ann_ret should be implemented in the Backtester class to calculate the annual return of a run strategy"
-    assert '_num_trds' in dir(
-        Backtester), "method _num_trds should be implemented in the Backtester class to calculate the number of trades of a run strategy"
-    assert '_avg_ret_trd' in dir(
-        Backtester), "method _avg_ret_trds should be implemented in the Backtester class to calculate the average return per trade of a run strategy"
+@pytest.mark.parametrize("_metric_method, metric", [
+    ("_sharpe", "Sharpe ratio"),
+    ("_sortino", "Sortino ratio"),
+    ("_cagr", "compounded annual growth rate"),
+    ("_beta", "beta"),
+    ("_max_dd", "max drawdown"),
+    ("_avg_dd", "average drawdown"),
+    ("_ann_ret", "annual return"),
+    ("_num_trds", "number of trades"),
+    ("_avg_ret_trd", "average return per trade")
+])
+def test_backtester_metrics_methods(_metric_method, metric):
+    assert _metric_method in dir(
+        Backtester), f"method {_metric_method} should be implemented in the Backtester class to calculate the {metric} of a run strategy"
