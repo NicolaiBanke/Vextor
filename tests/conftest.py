@@ -1,7 +1,14 @@
+import numpy as np
 import pandas as pd
 import pytest
 from baxter.Strategy import Strategy
 from baxter.Backtester import Backtester
+
+# generate som random numbers for fixtures
+rng = np.random.default_rng(42)
+
+# simulate generic backtest results
+_equity_curve = rng.normal(loc=5, scale=10, size=10000)
 
 with pd.HDFStore("data.h5") as store:
     _asset = store.get("asset")
@@ -22,6 +29,9 @@ def benchmark():
 def indicators():
     return _indicators
 
+@pytest.fixture(scope="module")
+def equity_curve():
+    return _equity_curve
 
 @pytest.fixture(scope="module")
 def sub_strategy(indicators):
