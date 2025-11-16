@@ -8,7 +8,6 @@ def test_strategy_instantiation(indicators):
             indicators=indicators), "Strategy is an abstract base class and should not be instantiatable"
 
 
-def test_strategy_methods():
-    assert 'long' in Strategy.__abstractmethods__, ".long should be an abstract method of the Strategy base class"
-    assert 'short' in Strategy.__abstractmethods__, ".short should be an abstract method of the Strategy base class"
-    assert 'close' in Strategy.__abstractmethods__, ".close should be an abstract method of the Strategy base class"
+@pytest.mark.parametrize("signal", ["long", "short", "close"])
+def test_strategy_methods(signal):
+    assert signal in Strategy.__abstractmethods__, f".{signal} should be an abstract method of the Strategy base class"
