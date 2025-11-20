@@ -19,9 +19,49 @@ class Backtester(ABC):
             index=benchmark.index,
             columns=["Unrealized Dollar P&L", "Realized Dollar P&L", "Unrealized Pct. P&L", "Realized Pct. P&L", "Unrealized Benchmark P&L", "Realized Benchmark P&L", "Unrealized Drawdown", "Realized Drawdown"])
 
-    # this method should fill in the self._equity_curve attribute 
+    # this method should fill in the self._equity_curve attribute
     @abstractmethod
     def _calculate_equity_curve(self): ...
+
+    def _sharpe(self):
+        """Sharpe Ratio"""
+        raise NotImplementedError
+
+    def _sortino(self):
+        """Sortino Ratio"""
+        raise NotImplementedError
+
+    def _cagr(self):
+        """Compounded Annual Growth Rate"""
+        raise NotImplementedError
+
+    def _beta(self):
+        """Beta"""
+        raise NotImplementedError
+
+    def _max_dd(self):
+        """Max Drawdown"""
+        raise NotImplementedError
+
+    def _avg_dd(self):
+        """Average Drawdown"""
+        raise NotImplementedError
+
+    def _ann_ret(self):
+        """Annual Return"""
+        raise NotImplementedError
+
+    def _tot_num_trades(self):
+        """Total Number of Trades"""
+        raise NotImplementedError
+
+    def _ann_num_trades(self):
+        """Annual Number of Trades"""
+        raise NotImplementedError
+
+    def _avg_ret_per_trade(self):
+        """Average Return per Trade"""
+        raise NotImplementedError
 
     def _plot_equity_curves(self):
 
