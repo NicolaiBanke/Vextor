@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from .Strategy import Strategy
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -25,7 +26,8 @@ class Backtester(ABC):
 
     def _sharpe(self):
         """Sharpe Ratio"""
-        raise NotImplementedError
+        rets = self._equity_curve["Unrealized Pct. P&L"].pct_change()
+        return (np.mean(rets) / np.std(rets)) * np.sqrt(252)
 
     def _sortino(self):
         """Sortino Ratio"""

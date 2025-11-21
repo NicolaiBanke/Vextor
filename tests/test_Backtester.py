@@ -28,10 +28,10 @@ def test_backtester_metrics_attribute():
 
 
 @pytest.mark.parametrize("method", methods)
-def test_backtester_metrics_results(metrics, method):
+def test_backtester_metrics_results(metrics, method, equity_curve):
     # override Backtester's abstract method so it can be instantiated
     Backtester.__abstractmethods__ = set()
     bt = Backtester(pd.DataFrame(), pd.DataFrame(), pd.DataFrame())
+    bt._equity_curve = equity_curve
 
-    assert getattr(bt, method)() == pytest.approx(
-        metrics.loc[method]), f"{method} should be approximately {metrics.loc[method]}"
+    assert getattr(bt, method)() == pytest.approx(metrics.loc[method].squeeze()), f"{method} should be approximately {metrics[method]}"
