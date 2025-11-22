@@ -50,7 +50,7 @@ class Backtester(ABC):
     def _cagr(self) -> float:
         """Compounded Annual Growth Rate"""
         cum_rets = self._equity_curve["Unrealized Pct. P&L"].dropna()
-        return (cum_rets[-1] / cum_rets[0])**(252 / len(cum_rets)) - 1
+        return (cum_rets[-1] / cum_rets[0])**(252 / (cum_rets.shape[0])) - 1
 
     def _beta(self) -> float:
         """Beta"""
@@ -67,21 +67,40 @@ class Backtester(ABC):
         """Average Drawdown"""
         return np.mean(self._equity_curve["Unrealized Drawdown"])
 
+    def _max_dd_dur(self) -> int:
+        """Longest drawdown duration"""
+        dds = (self._equity_curve["Unrealized Drawdown"] == 0).astype(int)
+        dd_chs = dds.diff()
+        dd_durs = np.round(dd_chs[dd_chs == -1].index.diff().days[1:])
+        max_dd_dur = np.round(np.max(dd_durs))
+        return max_dd_dur
+
+    def _avg_dd_dur(self) -> int:
+        """Longest drawdown duration"""
+        dds = (self._equity_curve["Unrealized Drawdown"] == 0).astype(int)
+        dd_chs = dds.diff()
+        dd_durs = np.round(dd_chs[dd_chs == -1].index.diff().days[1:])
+        avg_dd_dur = np.round(np.mean(dd_durs))
+        return avg_dd_dur
+
     def _ann_ret(self) -> float:
         """Annual Return"""
-        raise NotImplementedError
+        return np.mean(self._equity_curve["Unrealized Pct. P&L"].pct_change()) * 252
 
-    def _tot_num_trades(self):
-        """Total Number of Trades"""
-        raise NotImplementedError
+    def _tot_num_trades(self) -> int:
+        """Total Number of Trades rounded to nearest integer, where one trade counts as going in and out of position"""
+        return int(np.round(self._equity_curve["Realized Pct. P&L"].isna().value_counts().loc[False] / 2))
 
-    def _ann_num_trades(self):
-        """Annual Number of Trades"""
-        raise NotImplementedError
+    def _ann_num_trades(self) -> int:
+        """Annual Number of Trades rounded to nearest integer, where one trade counts as going in and out of position"""
+        tot_num_trading_days = self._equity_curve["Unrealized Pct. P&L"].dropna(
+        ).shape[0]
+        return int(np.round(self._tot_num_trades() / (tot_num_trading_days / 252)))
 
     def _avg_ret_per_trade(self):
         """Average Return per Trade"""
-        raise NotImplementedError
+        tot_ret = self._equity_curve["Realized Pct. P&L"].dropna()[-1]
+        return tot_ret**(1/self._tot_num_trades()) - 1
 
     def _plot_equity_curves(self):
 
