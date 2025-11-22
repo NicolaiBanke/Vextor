@@ -57,16 +57,15 @@ class Backtester(ABC):
         rets = self._equity_curve["Unrealized Pct. P&L"].pct_change()
         bm = self.benchmark.pct_change()
         beta = bm.corrwith(rets).squeeze()
-        print(bm)
         return beta
 
     def _max_dd(self) -> float:
         """Max Drawdown"""
-        raise NotImplementedError
+        return np.min(self._equity_curve["Unrealized Drawdown"])
 
     def _avg_dd(self) -> float:
         """Average Drawdown"""
-        raise NotImplementedError
+        return np.mean(self._equity_curve["Unrealized Drawdown"])
 
     def _ann_ret(self) -> float:
         """Annual Return"""
