@@ -37,34 +37,38 @@ class Backtester(ABC):
     @abstractmethod
     def _calculate_equity_curve(self): ...
 
-    def _sharpe(self):
+    def _sharpe(self) -> float:
         """Sharpe Ratio"""
         rets = self._equity_curve["Unrealized Pct. P&L"].pct_change()
         return (np.mean(rets) / np.std(rets)) * np.sqrt(252)
 
-    def _sortino(self):
+    def _sortino(self) -> float:
         """Sortino Ratio"""
         rets = self._equity_curve["Unrealized Pct. P&L"].pct_change()
         return (np.mean(rets) / np.std(rets[rets <= 0])) * np.sqrt(252)
 
-    def _cagr(self):
+    def _cagr(self) -> float:
         """Compounded Annual Growth Rate"""
         cum_rets = self._equity_curve["Unrealized Pct. P&L"].dropna()
         return (cum_rets[-1] / cum_rets[0])**(252 / len(cum_rets)) - 1
 
-    def _beta(self):
+    def _beta(self) -> float:
         """Beta"""
-        raise NotImplementedError
+        rets = self._equity_curve["Unrealized Pct. P&L"].pct_change()
+        bm = self.benchmark.pct_change()
+        beta = bm.corrwith(rets).squeeze()
+        print(bm)
+        return beta
 
-    def _max_dd(self):
+    def _max_dd(self) -> float:
         """Max Drawdown"""
         raise NotImplementedError
 
-    def _avg_dd(self):
+    def _avg_dd(self) -> float:
         """Average Drawdown"""
         raise NotImplementedError
 
-    def _ann_ret(self):
+    def _ann_ret(self) -> float:
         """Annual Return"""
         raise NotImplementedError
 
