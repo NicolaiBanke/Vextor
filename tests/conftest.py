@@ -3,25 +3,48 @@ import pytest
 from baxter.Strategy import Strategy
 from baxter.Backtester import Backtester
 
-with pd.HDFStore("data.h5") as store:
-    print(store)
-    _asset = store.get("asset")
-    _indicators = store.get("indicators")
+
+with pd.HDFStore("/home/n1c0/Dropbox/Quant/Projects/baxter/tests/test_strategy.h5") as store:
+    _portfolio = store.get("time_series/portfolio")
+    _benchmark = store.get("time_series/benchmark")
+    _indicators = store.get("time_series/indicators")
+    _equity_curve = store.get("time_series/equity_curve")
+    _metrics = store.get("metrics")
 
 
 @pytest.fixture(scope="module")
 def portfolio():
-    return _asset[["Close"]]
+    return _portfolio
 
 
 @pytest.fixture(scope="module")
 def benchmark():
-    return _asset[["Close"]]
+    return _benchmark
 
 
 @pytest.fixture(scope="module")
 def indicators():
     return _indicators
+
+
+@pytest.fixture(scope="module")
+def equity_curve():
+    return _equity_curve
+
+
+@pytest.fixture(scope="module")
+def metrics():
+    return _metrics
+
+
+@pytest.fixture(scope="module")
+def backtester(equity_curve, benchmark):
+    # override Backtester's abstract method so it can be instantiated
+    Backtester.__abstractmethods__ = set()
+    bt = Backtester(pd.DataFrame(), pd.DataFrame(), pd.DataFrame())
+    bt._equity_curve = equity_curve
+    bt.benchmark = benchmark
+    return bt
 
 
 @pytest.fixture(scope="module")
