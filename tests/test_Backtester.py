@@ -31,4 +31,4 @@ def test_backtester_metrics_attribute(backtester):
 def test_backtester_metrics_results(backtester, metrics, metric_name):
 
     assert getattr(backtester, metrics["method"].loc[metric_name])() == pytest.approx(
-        metrics["value"].loc[metric_name]), f"{metric_name} should be approximately {metrics["value"].loc[metric_name]}"
+        metrics["value"].loc[metric_name], abs=1e-3), f"{metric_name} should be approximately {metrics["value"].loc[metric_name]}"

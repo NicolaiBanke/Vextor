@@ -49,7 +49,8 @@ class Backtester(ABC):
 
     def _cagr(self):
         """Compounded Annual Growth Rate"""
-        raise NotImplementedError
+        cum_rets = self._equity_curve["Unrealized Pct. P&L"].dropna()
+        return (cum_rets[-1] / cum_rets[0])**(252 / len(cum_rets)) - 1
 
     def _beta(self):
         """Beta"""
