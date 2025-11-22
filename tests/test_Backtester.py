@@ -4,7 +4,7 @@ import pandas as pd
 from baxter.Backtester import Backtester
 
 with pd.HDFStore("/home/n1c0/Dropbox/Quant/Projects/baxter/tests/test_strategy.h5") as store:
-    methods = list(store.get("metrics").index)
+    metric_names = list(store.get("metrics").index)
 
 
 def test_backtester_instantiation(sub_strategy, portfolio, benchmark):
@@ -22,16 +22,13 @@ def test_backtester_plot_equity_curves():
         Backtester), "_plot_equity_curves should be an implemented method of Backtester"
 
 
-def test_backtester_metrics_attribute():
+def test_backtester_metrics_attribute(backtester):
     assert hasattr(
-        Backtester, 'metrics'), "metrics should be an attribute of the Backtester class"
+        backtester, 'metrics'), "metrics should be an attribute of the Backtester class"
 
 
-@pytest.mark.parametrize("method", methods)
-def test_backtester_metrics_results(metrics, method, equity_curve):
-    # override Backtester's abstract method so it can be instantiated
-    Backtester.__abstractmethods__ = set()
-    bt = Backtester(pd.DataFrame(), pd.DataFrame(), pd.DataFrame())
-    bt._equity_curve = equity_curve
+@pytest.mark.parametrize("metric_name", metric_names)
+def test_backtester_metrics_results(backtester, metrics, metric_name):
 
-    assert getattr(bt, method)() == pytest.approx(metrics.loc[method].squeeze()), f"{method} should be approximately {metrics[method]}"
+    assert getattr(backtester, metrics["method"].loc[metric_name])() == pytest.approx(
+        metrics["value"].loc[metric_name]), f"{metric_name} should be approximately {metrics["value"].loc[metric_name]}"

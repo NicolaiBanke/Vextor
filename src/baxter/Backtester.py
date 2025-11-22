@@ -20,6 +20,19 @@ class Backtester(ABC):
             index=benchmark.index,
             columns=["Unrealized Dollar P&L", "Realized Dollar P&L", "Unrealized Pct. P&L", "Realized Pct. P&L", "Unrealized Benchmark P&L", "Realized Benchmark P&L", "Unrealized Drawdown", "Realized Drawdown"])
 
+        self.metrics = pd.DataFrame.from_dict({
+            "Sharpe Ratio": np.nan,
+            "Sortino Ratio": np.nan,
+            "Compounded Annual Growth Rate": np.nan,
+            "Beta": np.nan,
+            "Max Drawdown": np.nan,
+            "Average Drawdown": np.nan,
+            "Annual Return": np.nan,
+            "Total # of Trades": np.nan,
+            "Annual # of Trades": np.nan,
+            "Average Return per Trade": np.nan
+        }, orient="index", columns=["value"])
+
     # this method should fill in the self._equity_curve attribute
     @abstractmethod
     def _calculate_equity_curve(self): ...
@@ -31,7 +44,8 @@ class Backtester(ABC):
 
     def _sortino(self):
         """Sortino Ratio"""
-        raise NotImplementedError
+        rets = self._equity_curve["Unrealized Pct. P&L"].pct_change()
+        return (np.mean(rets) / np.std(rets[rets <= 0])) * np.sqrt(252)
 
     def _cagr(self):
         """Compounded Annual Growth Rate"""

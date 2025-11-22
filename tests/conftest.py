@@ -38,6 +38,15 @@ def metrics():
 
 
 @pytest.fixture(scope="module")
+def backtester(equity_curve):
+    # override Backtester's abstract method so it can be instantiated
+    Backtester.__abstractmethods__ = set()
+    bt = Backtester(pd.DataFrame(), pd.DataFrame(), pd.DataFrame())
+    bt._equity_curve = equity_curve
+    return bt
+
+
+@pytest.fixture(scope="module")
 def sub_strategy(indicators):
     class SubStrategy(Strategy):
         def __init__(self, indicators):
