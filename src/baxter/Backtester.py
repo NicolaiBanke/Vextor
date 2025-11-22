@@ -83,6 +83,17 @@ class Backtester(ABC):
         avg_dd_dur = np.round(np.mean(dd_durs))
         return avg_dd_dur
 
+    def _num_dds(self):
+        """Total number of drawdowns"""
+        dds = (self._equity_curve["Unrealized Drawdown"] == 0).astype(int)
+        dd_chs = dds.diff()
+        dd_durs = np.round(dd_chs[dd_chs == -1].index.diff().days[1:])
+        return dd_durs.size
+
+    def _ann_num_dds(self):
+        T = self._equity_curve["Unrealized Drawdown"].size
+        return self._num_dds() / (T / 252)
+
     def _ann_ret(self) -> float:
         """Annual Return"""
         return np.mean(self._equity_curve["Unrealized Pct. P&L"].pct_change()) * 252
