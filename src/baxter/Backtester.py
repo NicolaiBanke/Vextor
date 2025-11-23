@@ -18,58 +18,47 @@ class Backtester(ABC):
 
         self._equity_curve = pd.DataFrame(
             index=benchmark.index,
-            columns=["Unrealized Dollar P&L", "Realized Dollar P&L", "Unrealized Pct. P&L", "Realized Pct. P&L", "Unrealized Benchmark P&L", "Realized Benchmark P&L", "Unrealized Drawdown", "Realized Drawdown"])
+            columns=["Unrealized P&L", "Realized P&L", "Unrealized Benchmark P&L", "Realized Benchmark P&L", "Strategy Drawdown", "Benchmark Drawdown"])
 
-        self.metrics = pd.DataFrame.from_dict({
-            "Sharpe Ratio": np.nan,
-            "Sortino Ratio": np.nan,
-            "Compounded Annual Growth Rate": np.nan,
-            "Beta": np.nan,
-            "Max Drawdown": np.nan,
-            "Average Drawdown": np.nan,
-            "Annual Return": np.nan,
-            "Total # of Trades": np.nan,
-            "Annual # of Trades": np.nan,
-            "Average Return per Trade": np.nan
-        }, orient="index", columns=["value"])
+        self.metrics = np.nan
 
     # this method should fill in the self._equity_curve attribute
     @abstractmethod
     def _calculate_equity_curve(self): ...
 
     def _sharpe(self) -> float:
-        """Sharpe Ratio"""
-        rets = self._equity_curve["Unrealized Pct. P&L"].pct_change()
+        """Sharpe Ratio (annualized)"""
+        rets = self._equity_curve["Unrealized P&L"].pct_change()
         return (np.mean(rets) / np.std(rets)) * np.sqrt(252)
 
     def _sortino(self) -> float:
-        """Sortino Ratio"""
-        rets = self._equity_curve["Unrealized Pct. P&L"].pct_change()
+        """Sortino Ratio (annualized)"""
+        rets = self._equity_curve["Unrealized P&L"].pct_change()
         return (np.mean(rets) / np.std(rets[rets <= 0])) * np.sqrt(252)
 
     def _cagr(self) -> float:
         """Compounded Annual Growth Rate"""
-        cum_rets = self._equity_curve["Unrealized Pct. P&L"].dropna()
+        cum_rets = self._equity_curve["Unrealized P&L"].dropna()
         return (cum_rets[-1] / cum_rets[0])**(252 / (cum_rets.shape[0])) - 1
 
     def _beta(self) -> float:
         """Beta"""
-        rets = self._equity_curve["Unrealized Pct. P&L"].pct_change()
+        rets = self._equity_curve["Unrealized P&L"].pct_change()
         bm = self.benchmark.pct_change()
         beta = bm.corrwith(rets).squeeze()
         return beta
 
     def _max_dd(self) -> float:
         """Max Drawdown"""
-        return np.min(self._equity_curve["Unrealized Drawdown"])
+        return np.min(self._equity_curve["Strategy Drawdown"])
 
     def _avg_dd(self) -> float:
         """Average Drawdown"""
-        return np.mean(self._equity_curve["Unrealized Drawdown"])
+        return np.mean(self._equity_curve["Strategy Drawdown"])
 
     def _max_dd_dur(self) -> int:
         """Longest drawdown duration"""
-        dds = (self._equity_curve["Unrealized Drawdown"] == 0).astype(int)
+        dds = (self._equity_curve["Strategy Drawdown"] == 0).astype(int)
         dd_chs = dds.diff()
         dd_durs = np.round(dd_chs[dd_chs == -1].index.diff().days[1:])
         max_dd_dur = np.round(np.max(dd_durs))
@@ -77,7 +66,7 @@ class Backtester(ABC):
 
     def _avg_dd_dur(self) -> int:
         """Longest drawdown duration"""
-        dds = (self._equity_curve["Unrealized Drawdown"] == 0).astype(int)
+        dds = (self._equity_curve["Strategy Drawdown"] == 0).astype(int)
         dd_chs = dds.diff()
         dd_durs = np.round(dd_chs[dd_chs == -1].index.diff().days[1:])
         avg_dd_dur = np.round(np.mean(dd_durs))
@@ -85,57 +74,71 @@ class Backtester(ABC):
 
     def _num_dds(self):
         """Total number of drawdowns"""
-        dds = (self._equity_curve["Unrealized Drawdown"] == 0).astype(int)
+        dds = (self._equity_curve["Strategy Drawdown"] == 0).astype(int)
         dd_chs = dds.diff()
         dd_durs = np.round(dd_chs[dd_chs == -1].index.diff().days[1:])
         return dd_durs.size
 
     def _ann_num_dds(self):
-        T = self._equity_curve["Unrealized Drawdown"].size
+        T = self._equity_curve["Strategy Drawdown"].size
         return self._num_dds() / (T / 252)
 
     def _ann_ret(self) -> float:
         """Annual Return"""
-        return np.mean(self._equity_curve["Unrealized Pct. P&L"].pct_change()) * 252
+        return np.mean(self._equity_curve["Unrealized P&L"].pct_change()) * 252
 
     def _tot_num_trades(self) -> int:
         """Total Number of Trades rounded to nearest integer, where one trade counts as going in and out of position"""
-        return int(np.round(self._equity_curve["Realized Pct. P&L"].isna().value_counts().loc[False] / 2))
+        return int(np.round(self._equity_curve["Realized P&L"].isna().value_counts().loc[False] / 2))
 
     def _ann_num_trades(self) -> int:
         """Annual Number of Trades rounded to nearest integer, where one trade counts as going in and out of position"""
-        tot_num_trading_days = self._equity_curve["Unrealized Pct. P&L"].dropna(
+        tot_num_trading_days = self._equity_curve["Unrealized P&L"].dropna(
         ).shape[0]
         return int(np.round(self._tot_num_trades() / (tot_num_trading_days / 252)))
 
     def _avg_ret_per_trade(self):
         """Average Return per Trade"""
-        tot_ret = self._equity_curve["Realized Pct. P&L"].dropna()[-1]
+        tot_ret = self._equity_curve["Realized P&L"].dropna()[-1]
         return tot_ret**(1/self._tot_num_trades()) - 1
+
+    def _calc_metrics(self):
+        self.metrics = pd.DataFrame.from_dict({
+            "Sharpe Ratio (annualized)": self._sharpe(),
+            "Sortino Ratio (annualized)": self._sortino(),
+            "Compounded Annual Growth Rate": self._cagr(),
+            "Beta": self._beta(),
+            "Max Drawdown": self._max_dd(),
+            "Average Drawdown": self._avg_dd(),
+            "Max Drawdown Duration": self._max_dd_dur(),
+            "Average Drawdown Duration": self._avg_dd_dur(),
+            "Total # of Drawdowns": self._num_dds(),
+            "Annual # of Drawdowns": self._ann_num_dds(),
+            "Annual Return": self._ann_ret(),
+            "Total # of Trades": self._tot_num_trades(),
+            "Annual # of Trades": self._ann_num_trades(),
+            "Average Return per Trade": self._avg_ret_per_trade()
+        }, orient="index", columns=["value"])
 
     def _plot_equity_curves(self):
 
-        fig, (ax0, ax1, ax2) = plt.subplots(
-            3, 1, figsize=(20, 15), sharex=True)
+        fig, (ax0, ax1) = plt.subplots(
+            2, 1, figsize=(20, 15), sharex=True)
 
         fig.suptitle("Equity Curves and Drawdown")
 
-        ax0.plot(self._equity_curve["Unrealized Dollar P&L"])
-        ax0.plot(self._equity_curve["Realized Benchmark P&L"])
-        ax0.plot(self._equity_curve["Realized Dollar P&L"], 'g+')
+        ax0.plot(self._equity_curve["Unrealized P&L"])
+        ax0.plot(self._equity_curve["Unrealized Benchmark P&L"])
+        ax0.plot(self._equity_curve["Realized P&L"], 'g+')
         ax0.legend(['Unrealized', 'Benchmark', 'Realized'])
-        ax0.set_title("Dollar P&L")
+        ax0.set_title("Percentage P&L")
+        ax0.set_yscale('log')
 
-        ax1.plot(self._equity_curve["Unrealized Pct. P&L"])
-        ax1.plot(self._equity_curve["Unrealized Benchmark P&L"])
-        ax1.plot(self._equity_curve["Realized Pct. P&L"], 'g+')
-        ax1.legend(['Unrealized', 'Benchmark', 'Realized'])
-        ax1.set_title("Percentage P&L")
-
-        ax2.plot(self._equity_curve["Unrealized Drawdown"], 'black')
-        ax2.plot(self._equity_curve["Realized Drawdown"], 'rv')
-        ax2.set_title("Drawdown")
+        ax1.plot(self._equity_curve["Strategy Drawdown"])
+        ax1.plot(self._equity_curve["Benchmark Drawdown"])
+        ax1.set_title("Drawdown")
 
     def run(self) -> None:
         self._calculate_equity_curve()
         self._plot_equity_curves()
+        self._calc_metrics()
