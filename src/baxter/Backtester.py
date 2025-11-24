@@ -18,7 +18,7 @@ class Backtester(ABC):
 
         self._equity_curve = pd.DataFrame(
             index=benchmark.index,
-            columns=["Unrealized P&L", "Realized P&L", "Unrealized Benchmark P&L", "Realized Benchmark P&L", "Strategy Drawdown", "Benchmark Drawdown"])
+            columns=["Unrealized P&L", "Realized P&L", "Unrealized Benchmark P&L", "Realized Benchmark P&L", "Strategy Drawdown", "Benchmark Drawdown", "Position"])
 
         self.metrics = np.nan
 
@@ -28,23 +28,25 @@ class Backtester(ABC):
 
     def _sharpe(self) -> float:
         """Sharpe Ratio (annualized)"""
-        rets = self._equity_curve["Unrealized P&L"].pct_change()
+        eqc = self._equity_curve[["Unrealized P&L", "Position"]]
+        rets = eqc.loc[eqc["Position"] != 0]["Unrealized P&L"]
         return (np.mean(rets) / np.std(rets)) * np.sqrt(252)
 
     def _sortino(self) -> float:
         """Sortino Ratio (annualized)"""
-        rets = self._equity_curve["Unrealized P&L"].pct_change()
+        eqc = self._equity_curve[["Unrealized P&L", "Position"]]
+        rets = eqc.loc[eqc["Position"] != 0]["Unrealized P&L"]
         return (np.mean(rets) / np.std(rets[rets <= 0])) * np.sqrt(252)
 
     def _cagr(self) -> float:
         """Compounded Annual Growth Rate"""
-        cum_rets = self._equity_curve["Unrealized P&L"].dropna()
+        cum_rets = np.cumprod(1+self._equity_curve["Unrealized P&L"].dropna())
         return (cum_rets[-1] / cum_rets[0])**(252 / (cum_rets.shape[0])) - 1
 
     def _beta(self) -> float:
         """Beta"""
-        rets = self._equity_curve["Unrealized P&L"].pct_change()
-        bm = self.benchmark.pct_change()
+        rets = self._equity_curve["Unrealized P&L"]
+        bm = self._equity_curve[["Unrealized Benchmark P&L"]]
         beta = bm.corrwith(rets).squeeze()
         return beta
 
@@ -85,11 +87,11 @@ class Backtester(ABC):
 
     def _ann_ret(self) -> float:
         """Annual Return"""
-        return np.mean(self._equity_curve["Unrealized P&L"].pct_change()) * 252
+        return np.mean(self._equity_curve["Unrealized P&L"]) * 252
 
     def _tot_num_trades(self) -> int:
         """Total Number of Trades rounded to nearest integer, where one trade counts as going in and out of position"""
-        return int(np.round(self._equity_curve["Realized P&L"].isna().value_counts().loc[False] / 2))
+        return self._equity_curve["Realized P&L"].dropna().size
 
     def _ann_num_trades(self) -> int:
         """Annual Number of Trades rounded to nearest integer, where one trade counts as going in and out of position"""
@@ -99,8 +101,7 @@ class Backtester(ABC):
 
     def _avg_ret_per_trade(self):
         """Average Return per Trade"""
-        tot_ret = self._equity_curve["Realized P&L"].dropna()[-1]
-        return tot_ret**(1/self._tot_num_trades()) - 1
+        return np.sum(self._equity_curve["Unrealized P&L"]) / self._tot_num_trades()
 
     def _calc_metrics(self):
         self.metrics = pd.DataFrame.from_dict({
@@ -127,10 +128,11 @@ class Backtester(ABC):
 
         fig.suptitle("Equity Curves and Drawdown")
 
-        ax0.plot(self._equity_curve["Unrealized P&L"])
-        ax0.plot(self._equity_curve["Unrealized Benchmark P&L"])
-        ax0.plot(self._equity_curve["Realized P&L"], 'g+')
-        ax0.legend(['Unrealized', 'Benchmark', 'Realized'])
+        ax0.plot(np.cumprod(1 + self._equity_curve["Unrealized P&L"]))
+        ax0.plot(np.cumprod(
+            1 + self._equity_curve["Unrealized Benchmark P&L"]))
+        # ax0.plot(np.cumprod(1 + self._equity_curve["Realized P&L"]), 'g+')
+        # ax0.legend(['Unrealized', 'Benchmark', 'Realized'])
         ax0.set_title("Percentage P&L")
         ax0.set_yscale('log')
 

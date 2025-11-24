@@ -1,5 +1,6 @@
 from .Backtester import Backtester
 import pandas as pd
+import numpy as np
 
 
 class LoopTester(Backtester):
@@ -11,6 +12,7 @@ class LoopTester(Backtester):
             "unrlzd": [],
             "trade_dates": [],
             "dates": [],
+            "position": []
         }
 
     def _calculate_equity_curve(self) -> None:
@@ -18,20 +20,20 @@ class LoopTester(Backtester):
         pos = 0
         COMMS = 0.05
 
-        for i in range(1, len(self.benchmark) - 1):
+        for i in range(1, len(self.benchmark)):
             unr = (
-                (self.portfolio.iloc[i].item() -
-                 self.portfolio.iloc[i - 1].item())
-                / self.portfolio.iloc[i - 1].item()
+                (self.portfolio.Close.iloc[i] -
+                 self.portfolio.Close.iloc[i - 1])
+                / self.portfolio.Close.iloc[i - 1]
             ) * pos
             self._loop_results["unrlzd"].append(unr)
             self._loop_results["dates"].append(self.portfolio.index[i])
+            self._loop_results["position"].append(pos)
 
             # go long
             if self.strategy.long(self.strategy.indicators.iloc[i]) and pos == 0:
-                entry = self.portfolio.iloc[i].item()
-                self._loop_results["trade_dates"].append(
-                    self.portfolio.index[i + 1])
+                entry = self.portfolio.Open.iloc[i + 1]
+
                 pos = 1
 
             # go short
@@ -40,39 +42,36 @@ class LoopTester(Backtester):
 
             # close position
             elif self.strategy.close(self.strategy.indicators.iloc[i]) and pos != 0:
-                pnl = (self.portfolio.iloc[i].item() - entry) / entry
+                pnl = (self.portfolio.Close.iloc[i] - entry) / entry
                 self._loop_results["pnls"].append(pnl)
+                self._loop_results["trade_dates"].append(
+                    self.portfolio.index[i + 1])
                 pos = 0
 
             else:
                 pass
 
-        self._equity_curve["Realized P&L"] = (
-            1
-            + pd.Series(
-                self._loop_results["pnls"], index=self._loop_results["trade_dates"]
-            )
-        ).cumprod()
+        self._equity_curve["Realized P&L"] = pd.Series(
+            self._loop_results["pnls"], index=self._loop_results["trade_dates"])
 
-        self._equity_curve["Unrealized P&L"] = (
-            1
-            + pd.Series(
-                self._loop_results["unrlzd"], index=self._loop_results["dates"]
-            )
-        ).cumprod()
+        self._equity_curve["Unrealized P&L"] = pd.Series(
+            self._loop_results["unrlzd"], index=self._loop_results["dates"]
+        )
 
-        self._equity_curve["Unrealized Benchmark P&L"] = (
-            1 + self.benchmark.pct_change()
-        ).cumprod()
+        self._equity_curve["Unrealized Benchmark P&L"] = self.benchmark.pct_change(
+        )
 
         self._equity_curve["Strategy Drawdown"] = (
-            self._equity_curve["Unrealized P&L"]
-            / self._equity_curve["Unrealized P&L"].expanding().max()
+            np.cumprod(1+self._equity_curve["Unrealized P&L"])
+            / np.cumprod(1+self._equity_curve["Unrealized P&L"]).expanding().max()
             - 1
         )
 
         self._equity_curve["Benchmark Drawdown"] = (
-            self._equity_curve["Unrealized Benchmark P&L"]
-            / self._equity_curve["Unrealized Benchmark P&L"].expanding().max()
+            np.cumprod(1+self._equity_curve["Unrealized Benchmark P&L"])
+            / np.cumprod(1+self._equity_curve["Unrealized Benchmark P&L"]).expanding().max()
             - 1
         )
+
+        self._equity_curve["Position"] = pd.Series(
+            self._loop_results["position"], index=self._loop_results["dates"]).ffill()
