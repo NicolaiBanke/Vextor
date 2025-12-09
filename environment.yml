@@ -1,0 +1,10 @@
+name: baxter
+channels:
+ - defaults
+ - conda-forge
+ - pip
+dependencies:
+ - python>=3.12
+ - pandas
+ - matplotlib
+ - seaborn
