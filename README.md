@@ -3,6 +3,9 @@ The title of the project comes from a mix of the words _backtester_, _vector_ an
 
 The package itself is a lightweight framework providing a simple interface for defining trading strategies and fast calculations of the equity curve and a range of quantitative metrics. The data, as well as the indicators derived from it, are calculated by hand and should be well defined for each point-in-time, and are passed through to the calculating objects, removing the need for the backtester to have any internal data itself. See the `examples` folder for examples on how to use the package.
 
-Finally, to install the project from github
+## Installation
+The project can be installed from the repository
 
-`pip install git+https://github.com/NicolaiBanke/Baxter.git`.
+```bash
+pip install git+https://github.com/NicolaiBanke/Baxter.git
+```
