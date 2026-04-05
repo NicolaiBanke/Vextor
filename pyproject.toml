@@ -1,0 +1,52 @@
+[project]
+name = "vextor"
+version = "0.1.0"
+description = "A vectorized backtester for quantitative trading strategies."
+readme = "README.md"
+authors = [
+    { name = "Nicolai Banke", email = "nicolaibanke@hotmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pandas>=2.3.3",
+    "pandera>=0.30.1",
+    "seaborn>=0.13.2",
+]
+
+[project.scripts]
+vextor = "vextor:main"
+
+[build-system]
+requires = ["uv_build>=0.9.18,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.19.1",
+    "pandera[mypy]>=0.30.1",
+    "pytest>=9.0.2",
+    "ruff>=0.15.8",
+    "ty>=0.0.26",
+]
+
+[tool.mypy]
+# Improve error messages for better readability.
+pretty = true
+
+# Specify the target Python version.
+python_version = "3.13"
+
+# Flag functions with missing type annotations.
+check_untyped_defs = true
+
+# Suppress errors about missing stubs for third-party libraries.
+ignore_missing_imports = true
+
+# Enable plugins for libraries like Pandera and Pydantic.
+plugins = "pandera.mypy"
+
+[tool.ruff]
+target-version = "py313"
+
+[tool.ty.src]
+exclude = ["src/vextor/backtest/LoopTester.py"]
